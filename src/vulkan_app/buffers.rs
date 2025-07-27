@@ -39,7 +39,7 @@ pub fn create_vertex_buffer(
     _indices: &QueueFamilyIndices,
     data: &[Vertex],
 ) -> (vk::Buffer, vk::DeviceMemory) {
-    let buffer_size = (std::mem::size_of::<Vertex>() * super::vertex::VERTICES.len()) as vk::DeviceSize;
+    let buffer_size = (std::mem::size_of::<Vertex>() * data.len()) as vk::DeviceSize;
     let (buffer, buffer_memory) = create_buffer(
         instance,
         device,

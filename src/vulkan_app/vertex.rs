@@ -37,36 +37,36 @@ impl Vertex {
 
 pub const VERTICES: [Vertex; 8] = [
     Vertex {
-        pos: [-0.5, -0.5, 0.0],
-        color: [1.0, 0.0, 0.0],
+        pos: [-0.5, -0.5, 0.5],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
-        pos: [0.5, -0.5, 0.0],
-        color: [0.0, 1.0, 0.0],
+        pos: [0.5, -0.5, 0.5],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
-        pos: [0.5, 0.5, 0.0],
-        color: [0.0, 0.0, 1.0],
+        pos: [0.5, 0.5, 0.5],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
-        pos: [-0.5, 0.5, 0.0],
-        color: [1.0, 1.0, 1.0],
+        pos: [-0.5, 0.5, 0.5],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
         pos: [-0.5, -0.5, -0.5],
-        color: [1.0, 0.0, 0.0],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
         pos: [0.5, -0.5, -0.5],
-        color: [0.0, 1.0, 0.0],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
         pos: [0.5, 0.5, -0.5],
-        color: [0.0, 0.0, 1.0],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
         pos: [-0.5, 0.5, -0.5],
-        color: [1.0, 1.0, 1.0],
+        color: [0.298, 0.686, 0.314],
     },
 ];
 
@@ -78,3 +78,25 @@ pub const INDICES: [u16; 36] = [
     3, 2, 6, 6, 7, 3, // top
     0, 5, 1, 5, 0, 4, // bottom
 ];
+
+pub fn generate_wireframe_vertices(divisions: u32) -> Vec<Vertex> {
+    let color = [0.298, 0.686, 0.314];
+    let mut vertices = Vec::new();
+    let step = 1.0 / divisions as f32;
+    for i in 0..=divisions {
+        let a = -0.5 + i as f32 * step;
+        for j in 0..=divisions {
+            let b = -0.5 + j as f32 * step;
+            // lines parallel to x
+            vertices.push(Vertex { pos: [-0.5, a, b], color });
+            vertices.push(Vertex { pos: [0.5, a, b], color });
+            // lines parallel to y
+            vertices.push(Vertex { pos: [b, -0.5, a], color });
+            vertices.push(Vertex { pos: [b, 0.5, a], color });
+            // lines parallel to z
+            vertices.push(Vertex { pos: [a, b, -0.5], color });
+            vertices.push(Vertex { pos: [a, b, 0.5], color });
+        }
+    }
+    vertices
+}
