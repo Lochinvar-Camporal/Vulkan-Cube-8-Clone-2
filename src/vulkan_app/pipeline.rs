@@ -187,6 +187,117 @@ pub fn create_graphics_pipeline(
     (graphics_pipeline, pipeline_layout)
 }
 
+pub fn create_wireframe_pipeline(
+    device: &ash::Device,
+    render_pass: vk::RenderPass,
+    extent: vk::Extent2D,
+    pipeline_layout: vk::PipelineLayout,
+) -> vk::Pipeline {
+    let vert_shader_code = include_bytes!(env!("VERT_SHADER_PATH"));
+    let frag_shader_code = include_bytes!(env!("FRAG_SHADER_PATH"));
+
+    let vert_shader_module = create_shader_module(device, vert_shader_code);
+    let frag_shader_module = create_shader_module(device, frag_shader_code);
+
+    let main_function_name = CString::new("main").unwrap();
+
+    let vert_shader_stage_info = vk::PipelineShaderStageCreateInfo::builder()
+        .stage(vk::ShaderStageFlags::VERTEX)
+        .module(vert_shader_module)
+        .name(&main_function_name);
+
+    let frag_shader_stage_info = vk::PipelineShaderStageCreateInfo::builder()
+        .stage(vk::ShaderStageFlags::FRAGMENT)
+        .module(frag_shader_module)
+        .name(&main_function_name);
+
+    let shader_stages = [vert_shader_stage_info.build(), frag_shader_stage_info.build()];
+
+    let binding_description = Vertex::get_binding_description();
+    let attribute_descriptions = Vertex::get_attribute_descriptions();
+    let vertex_input_info = vk::PipelineVertexInputStateCreateInfo::builder()
+        .vertex_binding_descriptions(std::slice::from_ref(&binding_description))
+        .vertex_attribute_descriptions(&attribute_descriptions);
+
+    let input_assembly = vk::PipelineInputAssemblyStateCreateInfo::builder()
+        .topology(vk::PrimitiveTopology::LINE_LIST)
+        .primitive_restart_enable(false);
+
+    let viewport = vk::Viewport::builder()
+        .x(0.0)
+        .y(0.0)
+        .width(extent.width as f32)
+        .height(extent.height as f32)
+        .min_depth(0.0)
+        .max_depth(1.0);
+
+    let scissor = vk::Rect2D::builder()
+        .offset(vk::Offset2D { x: 0, y: 0 })
+        .extent(extent);
+
+    let viewport_state = vk::PipelineViewportStateCreateInfo::builder()
+        .viewports(std::slice::from_ref(&viewport))
+        .scissors(std::slice::from_ref(&scissor));
+
+    let rasterizer = vk::PipelineRasterizationStateCreateInfo::builder()
+        .depth_clamp_enable(false)
+        .rasterizer_discard_enable(false)
+        .polygon_mode(vk::PolygonMode::LINE)
+        .line_width(0.03)
+        .cull_mode(vk::CullModeFlags::BACK)
+        .front_face(vk::FrontFace::COUNTER_CLOCKWISE)
+        .depth_bias_enable(false);
+
+    let multisampling = vk::PipelineMultisampleStateCreateInfo::builder()
+        .sample_shading_enable(false)
+        .rasterization_samples(vk::SampleCountFlags::TYPE_1);
+
+    let depth_stencil = vk::PipelineDepthStencilStateCreateInfo::builder()
+        .depth_test_enable(true)
+        .depth_write_enable(true)
+        .depth_compare_op(vk::CompareOp::LESS)
+        .depth_bounds_test_enable(false)
+        .stencil_test_enable(false);
+
+    let color_blend_attachment = vk::PipelineColorBlendAttachmentState::builder()
+        .color_write_mask(vk::ColorComponentFlags::RGBA)
+        .blend_enable(false);
+
+    let color_blending = vk::PipelineColorBlendStateCreateInfo::builder()
+        .logic_op_enable(false)
+        .attachments(std::slice::from_ref(&color_blend_attachment));
+
+    let pipeline_info = vk::GraphicsPipelineCreateInfo::builder()
+        .stages(&shader_stages)
+        .vertex_input_state(&vertex_input_info)
+        .input_assembly_state(&input_assembly)
+        .viewport_state(&viewport_state)
+        .rasterization_state(&rasterizer)
+        .multisample_state(&multisampling)
+        .depth_stencil_state(&depth_stencil)
+        .color_blend_state(&color_blending)
+        .layout(pipeline_layout)
+        .render_pass(render_pass)
+        .subpass(0);
+
+    let pipeline = unsafe {
+        device
+            .create_graphics_pipelines(
+                vk::PipelineCache::null(),
+                std::slice::from_ref(&pipeline_info),
+                None,
+            )
+            .unwrap()[0]
+    };
+
+    unsafe {
+        device.destroy_shader_module(vert_shader_module, None);
+        device.destroy_shader_module(frag_shader_module, None);
+    }
+
+    pipeline
+}
+
 fn create_shader_module(device: &ash::Device, code: &[u8]) -> vk::ShaderModule {
     let create_info = vk::ShaderModuleCreateInfo::builder().code(unsafe {
         std::slice::from_raw_parts(code.as_ptr() as *const u32, code.len() / 4)

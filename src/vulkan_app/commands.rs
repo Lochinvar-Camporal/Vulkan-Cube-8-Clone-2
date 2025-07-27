@@ -77,6 +77,16 @@ impl VulkanApp {
             );
             self.device
                 .cmd_draw_indexed(command_buffer, INDICES.len() as u32, 1, 0, 0, 0);
+            self.device.cmd_bind_pipeline(
+                command_buffer,
+                vk::PipelineBindPoint::GRAPHICS,
+                self.wireframe_pipeline,
+            );
+            let wire_buffers = [self.wireframe_vertex_buffer];
+            let offsets = [0];
+            self.device
+                .cmd_bind_vertex_buffers(command_buffer, 0, &wire_buffers, &offsets);
+            self.device.cmd_draw(command_buffer, self.wireframe_vertex_count, 1, 0, 0);
             self.device.cmd_end_render_pass(command_buffer);
             self.device.end_command_buffer(command_buffer).unwrap();
         }
