@@ -37,36 +37,36 @@ impl Vertex {
 
 pub const VERTICES: [Vertex; 8] = [
     Vertex {
-        pos: [-0.5, -0.5, 0.0],
-        color: [1.0, 0.0, 0.0],
+        pos: [-0.5, -0.5, 0.5],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
-        pos: [0.5, -0.5, 0.0],
-        color: [0.0, 1.0, 0.0],
+        pos: [0.5, -0.5, 0.5],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
-        pos: [0.5, 0.5, 0.0],
-        color: [0.0, 0.0, 1.0],
+        pos: [0.5, 0.5, 0.5],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
-        pos: [-0.5, 0.5, 0.0],
-        color: [1.0, 1.0, 1.0],
+        pos: [-0.5, 0.5, 0.5],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
         pos: [-0.5, -0.5, -0.5],
-        color: [1.0, 0.0, 0.0],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
         pos: [0.5, -0.5, -0.5],
-        color: [0.0, 1.0, 0.0],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
         pos: [0.5, 0.5, -0.5],
-        color: [0.0, 0.0, 1.0],
+        color: [0.298, 0.686, 0.314],
     },
     Vertex {
         pos: [-0.5, 0.5, -0.5],
-        color: [1.0, 1.0, 1.0],
+        color: [0.298, 0.686, 0.314],
     },
 ];
 
@@ -78,3 +78,69 @@ pub const INDICES: [u16; 36] = [
     3, 2, 6, 6, 7, 3, // top
     0, 5, 1, 5, 0, 4, // bottom
 ];
+
+pub fn generate_wireframe_vertices(divisions: u32) -> Vec<Vertex> {
+    let color = [0.0, 0.0, 0.0];
+    let mut vertices = Vec::new();
+    let step = 1.0 / divisions as f32;
+
+    // grid lines on the faces only
+    for i in 1..divisions {
+        let pos = -0.5 + i as f32 * step;
+        // XY planes (z = ±0.5)
+        vertices.push(Vertex { pos: [-0.5, pos, -0.5], color });
+        vertices.push(Vertex { pos: [0.5, pos, -0.5], color });
+        vertices.push(Vertex { pos: [-0.5, pos, 0.5], color });
+        vertices.push(Vertex { pos: [0.5, pos, 0.5], color });
+
+        vertices.push(Vertex { pos: [pos, -0.5, -0.5], color });
+        vertices.push(Vertex { pos: [pos, 0.5, -0.5], color });
+        vertices.push(Vertex { pos: [pos, -0.5, 0.5], color });
+        vertices.push(Vertex { pos: [pos, 0.5, 0.5], color });
+
+        // XZ planes (y = ±0.5)
+        vertices.push(Vertex { pos: [-0.5, -0.5, pos], color });
+        vertices.push(Vertex { pos: [0.5, -0.5, pos], color });
+        vertices.push(Vertex { pos: [-0.5, 0.5, pos], color });
+        vertices.push(Vertex { pos: [0.5, 0.5, pos], color });
+
+        vertices.push(Vertex { pos: [pos, -0.5, -0.5], color });
+        vertices.push(Vertex { pos: [pos, -0.5, 0.5], color });
+        vertices.push(Vertex { pos: [pos, 0.5, -0.5], color });
+        vertices.push(Vertex { pos: [pos, 0.5, 0.5], color });
+
+        // YZ planes (x = ±0.5)
+        vertices.push(Vertex { pos: [-0.5, -0.5, pos], color });
+        vertices.push(Vertex { pos: [-0.5, 0.5, pos], color });
+        vertices.push(Vertex { pos: [0.5, -0.5, pos], color });
+        vertices.push(Vertex { pos: [0.5, 0.5, pos], color });
+
+        vertices.push(Vertex { pos: [-0.5, pos, -0.5], color });
+        vertices.push(Vertex { pos: [-0.5, pos, 0.5], color });
+        vertices.push(Vertex { pos: [0.5, pos, -0.5], color });
+        vertices.push(Vertex { pos: [0.5, pos, 0.5], color });
+    }
+
+    // cube edges
+    let edges = [
+        ([-0.5, -0.5, -0.5], [0.5, -0.5, -0.5]),
+        ([-0.5, 0.5, -0.5], [0.5, 0.5, -0.5]),
+        ([-0.5, -0.5, 0.5], [0.5, -0.5, 0.5]),
+        ([-0.5, 0.5, 0.5], [0.5, 0.5, 0.5]),
+        ([-0.5, -0.5, -0.5], [-0.5, 0.5, -0.5]),
+        ([0.5, -0.5, -0.5], [0.5, 0.5, -0.5]),
+        ([-0.5, -0.5, 0.5], [-0.5, 0.5, 0.5]),
+        ([0.5, -0.5, 0.5], [0.5, 0.5, 0.5]),
+        ([-0.5, -0.5, -0.5], [-0.5, -0.5, 0.5]),
+        ([0.5, -0.5, -0.5], [0.5, -0.5, 0.5]),
+        ([-0.5, 0.5, -0.5], [-0.5, 0.5, 0.5]),
+        ([0.5, 0.5, -0.5], [0.5, 0.5, 0.5]),
+    ];
+
+    for &(start, end) in &edges {
+        vertices.push(Vertex { pos: start, color });
+        vertices.push(Vertex { pos: end, color });
+    }
+
+    vertices
+}
